@@ -4,6 +4,13 @@ A reflection-based runtime Dependency Injection container for Go.
 ### Example Use
 See `examples` directory for full example with types.
 ```go
+package main
+
+import (
+	"fmt"
+	"github.com/zpalin/container"
+)
+
 func main() {
 	c := container.New()
 
@@ -72,5 +79,22 @@ func Start(svc UserService) {
 	svc.Create("World")
 	users := svc.ListAll()
 	fmt.Printf("Users: %+v\n", users)
+}
+
+type UserStore interface {
+	GetAll() []string
+	Save(u string)
+}
+
+type InMemoryUserStore struct {
+	users []string
+}
+
+func (s *InMemoryUserStore) GetAll() []string {
+	return s.users
+}
+
+func (s *InMemoryUserStore) Save(u string) {
+	s.users = append(s.users, u)
 }
 ```
