@@ -19,18 +19,18 @@ func main() {
 
 	// Register specific reference, will not be wired but will be used as dep
 	c.Register(&InMemoryUserStore{
-		users: []string{"Hello"},
+		users: []string{"Bob"},
 	})
 
 	// Can hand container arbitrary function and it will inject the types of the signature
-	c.Exec(Start)
+	c.Exec(SeedUsers)
 
 	// Can also hand a reference to a Runnable object, will be wired up as usual
 	// and then it will have .Run() called on it.
-	c.Run(&App{})
+	c.Run(&App{}) // outputs []string{"Alice", "Bob", "Bob"}
 
 	// Run and Exec also have async versions that will spawn work on goroutine
-	c.ExecAsync(Start)
+	c.ExecAsync(SeedUsers)
 
 	// Call .Wait() to block main thread until background operations are complete
 	c.Wait()
@@ -79,10 +79,9 @@ func (svc *ConcreteUserService) Create(u string) {
 
 // Arbitrary functions can also be used for `.Exec(func)` by the container. Params
 // will be injected by the container.
-func Start(svc UserService) {
-	svc.Create("World")
-	users := svc.ListAll()
-	fmt.Printf("Users: %+v\n", users)
+func SeedUsers(svc UserService) {
+	svc.Create("Bob")
+	svc.Create("Carl")
 }
 
 type UserStore interface {
