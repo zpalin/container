@@ -17,9 +17,11 @@ func (a *App) Run() {
 
 // Arbitrary functions can also be used for `.Exec(fn)` by the container. Params
 // will be injected by the container.
-func SeedUsers(svc UserService) {
+func SeedUsers(svc UserService, c container.Container) {
 	svc.Create("Bob")
 	svc.Create("Carl")
+
+	fmt.Printf("Container: %+v\n", c) // Reference to the container
 }
 
 func main() {

@@ -58,9 +58,11 @@ type ConcreteUserService struct {
 
 // You can also define a constructor method named `New` to configure
 // your deps during wiring and allow private members to be set.
-func (svc *ConcreteUserService) New(store UserStore) {
+func (svc *ConcreteUserService) New(store UserStore, c container.Container) {
 	fmt.Println("Constructing ConcreteUserService")
 	svc.store = store
+
+    fmt.Printf("Container: %+v\n", c) // reference to the container 
 }
 
 // If you define a method `Init` on your dep, it will be called ~after~

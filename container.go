@@ -143,6 +143,7 @@ func (c *depContainer) verifyRegistry(typ reflect.Type) {
 }
 
 func (c *depContainer) findDep(bld, typ reflect.Type) reflect.Value {
+	fmt.Printf("Typ.Kind(): %+v\n", typ.Kind())
 	switch typ.Kind() {
 	case reflect.Ptr:
 		return c.getOrCreateComponent(typ.Elem())
@@ -301,10 +302,12 @@ func (c *depContainer) Wait() {
 }
 
 func New() Container {
-	return &depContainer{
+	c := &depContainer{
 		impls: make(map[reflect.Type]reflect.Type),
 		refs:  make(map[reflect.Type]reflect.Value),
 		creating:  make(map[reflect.Type]interface{}),
 		hasBuilt: false,
 	}
+	c.RegisterAsInterface((*Container)(nil), c)
+	return c
 }
