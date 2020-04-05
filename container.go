@@ -5,6 +5,7 @@ import (
 	"log"
 	"reflect"
 	"sort"
+	"sync"
 )
 
 const ConstructorName = "New"
@@ -16,6 +17,7 @@ type depContainer struct {
 	refs  map[reflect.Type]reflect.Value
 	creating map[reflect.Type]interface{}
 	hasBuilt bool
+	wg sync.WaitGroup
 }
 
 type Runnable interface {
@@ -27,14 +29,14 @@ type Container interface {
 	// for the specific type and any interfaces it implements.
 	// If `comp` is a pointer, store as reference, otherwise use
 	// passed concrete type and create new instance to fulfill requirements.
-	Register(comps ...interface{}) Container
+	Register(comps ...interface{})
 
 	// RegisterAsInterface registers a component to be used to fulfill
 	// interface requirement. `iface` must be an interface.
 	// If `comp` is a pointer, store as reference, otherwise use
 	// passed concrete type and create new instance to fulfill specfied
 	// interface.
-	RegisterAsInterface(iface interface{}, comp interface{}) Container
+	RegisterAsInterface(iface interface{}, comp interface{})
 
 	// Load returns a pointer to the specified type or implementor of specified interface
 	// Panics if no type exists.
@@ -56,9 +58,18 @@ type Container interface {
 	// Run will take the supplied Runnable, inject dependencies into it,
 	// and call .Run() on it.
 	Exec(e interface{})
+
+	// Async version of Run
+	RunAsync(r Runnable)
+
+	// Async version of Exec
+	ExecAsync(e interface{})
+
+	// Wait waits on any spawned background workers with RunAsync or ExecAsync
+	Wait()
 }
 
-func (c *depContainer) Register(comps ...interface{}) Container {
+func (c *depContainer) Register(comps ...interface{}) {
 	for _, cmp := range comps {
 		typ := reflect.TypeOf(cmp)
 		if typ.Kind() == reflect.Ptr {
@@ -68,10 +79,9 @@ func (c *depContainer) Register(comps ...interface{}) Container {
 
 		c.types = append(c.types, typ)
 	}
-	return c
 }
 
-func (c *depContainer) RegisterAsInterface(iface interface{}, comp interface{}) Container {
+func (c *depContainer) RegisterAsInterface(iface interface{}, comp interface{}) {
 	ifaceTyp := reflect.TypeOf(iface).Elem()
 	if ifaceTyp.Kind() != reflect.Interface {
 		log.Fatal(fmt.Sprintf("%+v is not an interface", iface))
@@ -89,7 +99,6 @@ func (c *depContainer) RegisterAsInterface(iface interface{}, comp interface{}) 
 
 	c.types = append(c.types, typ)
 	c.impls[ifaceTyp] = typ
-	return c
 }
 
 func constructorArgCount(typ reflect.Type) int {
@@ -269,6 +278,26 @@ func (c *depContainer) Run(r Runnable) {
 	val := reflect.ValueOf(r)
 	c.wireComponent(val.Elem().Type(), val)
 	r.Run()
+}
+
+func (c *depContainer) RunAsync(r Runnable) {
+	c.wg.Add(1)
+	go func() {
+		c.Run(r)
+		c.wg.Done()
+	}()
+}
+
+func (c *depContainer) ExecAsync(e interface{}) {
+	c.wg.Add(1)
+	go func() {
+		c.Exec(e)
+		c.wg.Done()
+	}()
+}
+
+func (c *depContainer) Wait() {
+	c.wg.Wait()
 }
 
 func New() Container {

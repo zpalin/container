@@ -36,4 +36,10 @@ func main() {
 	// Can also hand a reference to a Runnable object, will be wired up as usual
 	// and then it will have .Run() called on it.
 	c.Run(&App{})
+
+	// Run and Exec also have async versions that will spawn work on goroutine
+	c.ExecAsync(Start)
+
+	// Call .Wait() to block main thread until background operations are complete
+	c.Wait()
 }
