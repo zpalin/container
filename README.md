@@ -65,6 +65,10 @@ func (svc *ConcreteUserService) New(store UserStore) {
 
 // If you define a method `Init` on your dep, it will be called ~after~
 // wiring is done.
+func (svc *ConcreteUserService) Init() {
+	fmt.Println("Init ConcreteUserService")
+}
+
 func (svc *ConcreteUserService) ListAll() []string {
 	return svc.store.GetAll()
 }
