@@ -14,7 +14,7 @@ import (
 func main() {
 	c := container.New()
 
-	// Register any number of types to be wired up
+	// Register any number of types to be wired up, order does not matter
 	c.Register(ConcreteUserService{})
 
 	// Register specific reference, will not be wired but will be used as dep
