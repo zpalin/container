@@ -9,11 +9,14 @@ type App struct {
 	UsrSvc UserService
 }
 
+// Implements the Runnable interface, so it can be run by the container
 func (a *App) Run() {
 	users := a.UsrSvc.ListAll()
 	fmt.Printf("Users: %+v\n", users)
 }
 
+// Arbitrary functions can also be used for `.Exec(fn)` by the container. Params
+// will be injected by the container.
 func Start(svc UserService) {
 	svc.Create("World")
 	users := svc.ListAll()
