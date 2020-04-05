@@ -34,6 +34,12 @@ type App struct {
 	UsrSvc UserService
 }
 
+// Implements the Runnable interface, so it can be `.Run(runnable)` by the container
+func (a *App) Run() {
+	users := a.UsrSvc.ListAll()
+	fmt.Printf("Users: %+v\n", users)
+}
+
 type UserService interface {
 	ListAll() []string
 	Create(u string)
@@ -58,12 +64,6 @@ func (svc *ConcreteUserService) ListAll() []string {
 
 func (svc *ConcreteUserService) Create(u string) {
 	svc.store.Save(u)
-}
-
-// Implements the Runnable interface, so it can be `.Run(runnable)` by the container
-func (a *App) Run() {
-	users := a.UsrSvc.ListAll()
-	fmt.Printf("Users: %+v\n", users)
 }
 
 // Arbitrary functions can also be used for `.Exec(func)` by the container. Params
